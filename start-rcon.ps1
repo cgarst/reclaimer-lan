@@ -3,7 +3,7 @@
 
   The client takes no command-line arguments, so this copies the password to the
   clipboard and prints the Host and Port to enter. The server listens for RCON on
-  TCP 127.0.0.1 at its game port (49178 by default).
+  TCP 127.0.0.1 at its game port (12345 by default).
 #>
 param(
     [string]$ServerDir = (Join-Path $PSScriptRoot 'campaign-server'),
@@ -28,7 +28,7 @@ $password = (Get-Content $rconPasswordFile -Raw).Trim()
 $toml = Get-Content $config -Raw
 $port = if ($toml -match '(?m)^rcon_port\s*=\s*(\d+)') { [int]$Matches[1] }
         elseif ($toml -match '(?m)^port\s*=\s*(\d+)') { [int]$Matches[1] }
-        else { 49178 }
+        else { 12345 }
 
 $client = New-Object Net.Sockets.TcpClient
 try {

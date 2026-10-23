@@ -12,7 +12,7 @@
 #>
 param(
     [string]$ServerDir = (Join-Path $PSScriptRoot 'campaign-server'),
-    [int]$Port = 49178,
+    [int]$Port = 12345,
     [string]$Name = 'LAN Multiplayer',
     [string]$MccDir = $(if ($env:RECLAIMER_MCC_DIR) { $env:RECLAIMER_MCC_DIR }
                         else { 'D:\SteamLibrary\steamapps\common\Halo The Master Chief Collection' }),
@@ -41,10 +41,20 @@ $maps = [ordered]@{
     'The Pit'      = 'cyberdyne'
     'Narrows'      = 'chill'
 }
-$modes = 'One in the Chamber', 'Gun Game', 'Slayer', 'King of the Hill', 'Infection', 'Juggernaut'
+# Game variant (as `dedicated content` names it) = name shown in the lobby. Slayer, King of
+# the Hill, Infection and Juggernaut use Halo 3's standard variants: the bare game type
+# names play as "Custom" games with default rules.
+$modes = [ordered]@{
+    'One in the Chamber'   = 'One in the Chamber'
+    'Gun Game'             = 'Gun Game'
+    'slayer-0_010.bin'     = 'Slayer'
+    'king'                 = 'King of the Hill'
+    'infection-0_010.bin'  = 'Infection'
+    'juggernaut-0_010.bin' = 'Juggernaut'
+}
 
 $games = foreach ($map in $maps.Keys) {
-    foreach ($mode in $modes) { [ordered]@{ map = $map; game = $mode } }
+    foreach ($mode in $modes.Keys) { [ordered]@{ map = $map; game = $mode; name = $modes[$mode] } }
 }
 
 # One-time setup: copy any missing maps from MCC (re-running init keeps existing settings).

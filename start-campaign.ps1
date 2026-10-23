@@ -16,7 +16,7 @@
 #>
 param(
     [string]$ServerDir = (Join-Path $PSScriptRoot 'campaign-server'),
-    [int]$Port = 49178,
+    [int]$Port = 12345,
     [string]$Name = 'Legendary Co-op',
     [string]$MccDir = $(if ($env:RECLAIMER_MCC_DIR) { $env:RECLAIMER_MCC_DIR }
                         else { 'D:\SteamLibrary\steamapps\common\Halo The Master Chief Collection' }),
