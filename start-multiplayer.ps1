@@ -1,11 +1,10 @@
 <#
   Starts a Project Reclaimer dedicated server running a Halo 3 multiplayer playlist:
-    Construct  One in the Chamber
-    Guardian   Gun Game
-    The Pit    Slayer
+  One in the Chamber, Gun Game, Slayer, King of the Hill, Infection and Juggernaut
+  on the ten smallest Halo 3 maps (60 games; a playlist holds at most 128).
 
-  Players vote between games in the lobby (the game just played sits out the next
-  ballot), so with three games the server moves through all of them.
+  Before each game, players vote between three games drawn at random from the
+  playlist (the game just played sits out the next ballot).
   Same LAN host settings as start-campaign.ps1: hidden, voice off, friendly fire off.
 
   Uses the same server folder and game files as start-campaign.ps1 but its own config
@@ -28,19 +27,30 @@ $exe = Get-ChildItem $PSScriptRoot -Filter 'project-reclaimer-dedicated-v*.exe' 
     Select-Object -Last 1 -ExpandProperty FullName
 if (-not $exe) { throw "No project-reclaimer-dedicated-v*.exe in $PSScriptRoot; run update-binaries.ps1" }
 
-$games = @(
-    @{ map = 'Construct'; game = 'One in the Chamber' }
-    @{ map = 'Guardian';  game = 'Gun Game' }
-    @{ map = 'The Pit';   game = 'Slayer' }
-)
-
-# One-time setup: copy the playlist's maps from MCC (re-running init keeps existing settings).
-$mapFiles = @{ 'Construct' = 'construct'; 'Guardian' = 'guardian'; 'The Pit' = 'cyberdyne' }
-$missing = $games | Where-Object {
-    -not (Test-Path (Join-Path $ServerDir "game\halo3\maps\$($mapFiles[$_.map]).map"))
+# The ten smallest Halo 3 multiplayer maps, as `dedicated content` names them, with their file stems
+# (`dedicated content` lists the other maps' names).
+$maps = [ordered]@{
+    'Heretic'      = 'midship'
+    'Guardian'     = 'guardian'
+    'Construct'    = 'construct'
+    'Epitaph'      = 'salvation'
+    'Citadel'      = 'fortress'
+    'Cold Storage' = 'chillout'
+    'Assembly'     = 'descent'
+    'Snowbound'    = 'snowbound'
+    'The Pit'      = 'cyberdyne'
+    'Narrows'      = 'chill'
 }
+$modes = 'One in the Chamber', 'Gun Game', 'Slayer', 'King of the Hill', 'Infection', 'Juggernaut'
+
+$games = foreach ($map in $maps.Keys) {
+    foreach ($mode in $modes) { [ordered]@{ map = $map; game = $mode } }
+}
+
+# One-time setup: copy any missing maps from MCC (re-running init keeps existing settings).
+$missing = $maps.Values | Where-Object { -not (Test-Path (Join-Path $ServerDir "game\halo3\maps\$_.map")) }
 if ($missing) {
-    & $exe dedicated init $ServerDir --from $MccDir --maps (($games | ForEach-Object { $_.map }) -join ',')
+    & $exe dedicated init $ServerDir --from $MccDir --maps ($missing -join ',')
     if ($LASTEXITCODE -ne 0) { throw "dedicated init failed ($LASTEXITCODE)" }
 }
 
