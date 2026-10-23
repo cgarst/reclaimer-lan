@@ -53,8 +53,12 @@ $modes = [ordered]@{
     'juggernaut-0_010.bin' = 'Juggernaut'
 }
 
+# One round per game: a new ballot opens only when a game ends, and several of these
+# variants otherwise play more than one round.
 $games = foreach ($map in $maps.Keys) {
-    foreach ($mode in $modes.Keys) { [ordered]@{ map = $map; game = $mode; name = $modes[$mode] } }
+    foreach ($mode in $modes.Keys) {
+        [ordered]@{ map = $map; game = $mode; name = $modes[$mode]; options = @{ 'rounds.limit' = 1 } }
+    }
 }
 
 # One-time setup: copy any missing maps from MCC (re-running init keeps existing settings).
