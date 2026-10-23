@@ -1,0 +1,6 @@
+# Server folder: game files copied from MCC (never redistribute), generated configs,
+# the RCON password, logs and bans. The start scripts recreate it.
+/campaign-server/
+
+# Project Reclaimer binaries (server, client, RCON client): download per machine.
+*.exe
