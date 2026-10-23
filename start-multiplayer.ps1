@@ -22,8 +22,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$exe = Join-Path $PSScriptRoot 'project-reclaimer-dedicated-v0.9.23.exe'
-if (-not (Test-Path $exe)) { throw "Dedicated server executable not found: $exe" }
+# Newest dedicated server in this folder (update-binaries.ps1 downloads it).
+$exe = Get-ChildItem $PSScriptRoot -Filter 'project-reclaimer-dedicated-v*.exe' |
+    Sort-Object { [version]($_.Name -replace '^.*-v([\d.]+)\.exe$', '$1') } |
+    Select-Object -Last 1 -ExpandProperty FullName
+if (-not $exe) { throw "No project-reclaimer-dedicated-v*.exe in $PSScriptRoot; run update-binaries.ps1" }
 
 $games = @(
     @{ map = 'Construct'; game = 'One in the Chamber' }

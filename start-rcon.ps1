@@ -7,12 +7,15 @@
 #>
 param(
     [string]$ServerDir = (Join-Path $PSScriptRoot 'campaign-server'),
-    [string]$RconExe = (Join-Path $PSScriptRoot 'reclaimer-rcon-v0.9.23.exe')
+    # Newest RCON client in this folder (update-binaries.ps1 downloads it).
+    [string]$RconExe = (Get-ChildItem $PSScriptRoot -Filter 'reclaimer-rcon-v*.exe' |
+        Sort-Object { [version]($_.Name -replace '^.*-v([\d.]+)\.exe$', '$1') } |
+        Select-Object -Last 1 -ExpandProperty FullName)
 )
 
 $ErrorActionPreference = 'Stop'
 
-if (-not (Test-Path $RconExe)) { throw "RCON client not found: $RconExe" }
+if (-not $RconExe -or -not (Test-Path $RconExe)) { throw "RCON client not found; run update-binaries.ps1" }
 
 $config = Join-Path $ServerDir 'dedicated.toml'
 $rconPasswordFile = Join-Path $ServerDir 'rcon-password.txt'

@@ -4,3 +4,4 @@
 
 # Project Reclaimer binaries (server, client, RCON client): download per machine.
 *.exe
+*.exe.download
