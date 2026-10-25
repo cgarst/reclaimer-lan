@@ -8,7 +8,7 @@
     Network      Online, but hidden (unlisted; players join by Direct Connect / address)
     Host         Friendly fire off, voice chat off
     Characters   Custom characters (Halo 3 only; ODST uses each player's trooper)
-    Scaling      +25% enemy health and +25% enemy damage per extra player
+    Scaling      +10% enemy health and +10% enemy damage per extra player
     Sprint       On
     Skulls       Cowbell (2048) + Grunt Birthday Party (4096) + IWHBYD (8192) = 14336
 
@@ -138,8 +138,8 @@ difficulty = "legendary"
 $characters
 
 [server.$section.modifiers]
-health_per_player_percent = 25
-damage_per_player_percent = 25
+health_per_player_percent = 10      
+damage_per_player_percent = 10
 sprint = true
 skulls = $skulls
 "@
