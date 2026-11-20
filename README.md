@@ -87,7 +87,7 @@ The password is generated on the first run of either start script and saved to `
 
 ## Docker
 
-`compose.yaml` runs both servers in one container (campaign co-op on UDP 12345, multiplayer playlist on UDP 12346) from the Linux dedicated server build. The image downloads the binary from the Project Reclaimer GitHub release at build time and checks its SHA-256. It holds no game files: your MCC folder is mounted read-only at `/mcc`, and the first start copies what it needs into the `server` volume.
+`compose.yaml` runs both servers in one container (campaign co-op on UDP 12345, multiplayer playlist on UDP 12346) from the Linux dedicated server build. The image contains none of Project Reclaimer's software: each time the container starts, `update-binary.sh` downloads the newest dedicated server from their GitHub release, checks its SHA-256 and caches it in the `cache` volume (like `update-binaries.ps1`). If GitHub can't be reached it uses the cached copy. It holds no game files: your MCC folder is mounted read-only at `/server/game` and used in place, so nothing is copied.
 
 ```sh
 cp .env.example .env       # set MCC_DIR (and MISSION, ports, names if you like)
@@ -97,10 +97,11 @@ docker compose logs -f
 
 Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). The `config` folder is mounted into the container at `/etc/reclaimer` (a folder, so editors that replace the file on save still work) and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. With no config mounted, the container uses the copy of `config/reclaimer.config.json` baked in at build time. `.env` covers the MCC path, optional overrides and the RCON password.
 
-- Update the server: `docker compose build --pull --no-cache && docker compose up -d`. Pin a release with `RECLAIMER_VERSION=v0.10.7`.
-- Change the mission: set `MISSION` in `.env` and run `docker compose up -d`. Missing game files are copied on that start.
+- Update the server: `docker compose restart` (it checks for a new release on every start). Pin a release with `RECLAIMER_VERSION=v0.10.7`, or set `UPDATE_ON_START=false` to use the cached copy. Rebuild the image only to change the scripts: `docker compose up -d --build`.
+- Change the mission: set `MISSION` in `.env` and run `docker compose up -d`.
 - RCON listens on TCP at each game port, published on the Docker host's `127.0.0.1` only. The password is in the volume at `/server/rcon-password.txt` (`docker compose exec reclaimer cat /server/rcon-password.txt`), or set `RCON_PASSWORD`.
 - Server commands: `docker compose exec reclaimer dedicated status`.
+- The container has a healthcheck (`dedicated status`) and waits and retries, instead of exiting, while `dedicated check` fails (for example a missing MCC mount), as the official image does. Extra server settings go in `.env` as `RECLAIMER_DEDICATED_*` variables (admins, `max_players`, `welcome`, ...); see the project's host guide.
 - The container needs UDP 12345/12346 reachable from the LAN. UPnP is off.
 
 ## Configuration

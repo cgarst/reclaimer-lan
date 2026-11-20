@@ -1,3 +1,4 @@
 *
 !entrypoint.sh
+!update-binary.sh
 !config/reclaimer.config.json

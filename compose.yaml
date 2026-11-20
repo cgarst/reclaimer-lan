@@ -9,16 +9,16 @@
 name: reclaimer-lan
 services:
   reclaimer:
-    build:
-      context: .
-      args:
-        RECLAIMER_VERSION: ${RECLAIMER_VERSION:-latest}
+    build: .
     image: reclaimer-lan:latest
     container_name: reclaimer-lan
-    init: true
     restart: unless-stopped
     stop_signal: SIGINT
     stop_grace_period: 30s
+    # Optional: RECLAIMER_DEDICATED_* settings in .env (admins, max_players, ...) override the generated file.
+    env_file:
+      - path: .env
+        required: false
     environment:
       # Empty = use reclaimer.config.json.
       CAMPAIGN_PORT: ${CAMPAIGN_PORT:-}
@@ -30,13 +30,16 @@ services:
       PUBLISHED_MULTIPLAYER_PORT: ${MULTIPLAYER_PORT:-12346}
       VOTE_SECONDS: ${VOTE_SECONDS:-}
       RCON_PASSWORD: ${RCON_PASSWORD:-}
+      # Server binary: downloaded from the project's release at start and cached in the cache volume.
+      RECLAIMER_VERSION: ${RECLAIMER_VERSION:-latest}
+      UPDATE_ON_START: ${UPDATE_ON_START:-true}
     volumes:
       # Shared settings (also read by the PowerShell scripts); edit config/reclaimer.config.json and `docker compose restart`.
       # Without this mount (or with no file in it) the image uses its built-in copy of the same file.
       - ./config:/etc/reclaimer:ro
-      # Your MCC install, read-only. Only read when game files are missing from the server volume.
-      - ${MCC_DIR:?set MCC_DIR in .env to your Halo The Master Chief Collection folder}:/mcc:ro
-      - server:/server   # game files copied from MCC (never redistribute), config, RCON password, logs, bans
+      - server:/server   # generated config, RCON password, logs, bans
+      # Your MCC install, mounted read-only as the game folder: nothing is copied from it.
+      - ${MCC_DIR:?set MCC_DIR in .env to your Halo The Master Chief Collection folder}:/server/game:ro
       - cache:/cache     # prepared engine and other caches
     ports:
       - "${CAMPAIGN_PORT:-12345}:${CAMPAIGN_PORT:-12345}/udp"

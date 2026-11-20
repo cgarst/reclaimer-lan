@@ -4,8 +4,8 @@
 set -euo pipefail
 
 SERVER_DIR="${SERVER_DIR:-/server}"
-MCC_DIR="${MCC_DIR:-/mcc}"
-VERSION_FILE="${VERSION_FILE:-/opt/reclaimer/VERSION}"
+BIN_DIR="${RECLAIMER_BIN_DIR:-/cache/bin}"
+VERSION_FILE="${VERSION_FILE:-$BIN_DIR/current/VERSION}"
 
 CONFIG_FILE="${CONFIG_FILE:-/etc/reclaimer/reclaimer.config.json}"   # ./config, shared with the PowerShell scripts
 
@@ -49,31 +49,18 @@ fi
 MISSION_GAME="${row%%|*}"
 MISSION_NAME="${row#*|}"
 
-DEDICATED=(project-reclaimer dedicated)
+"$(dirname "$0")/update-binary.sh"
+DEDICATED=("$BIN_DIR/current/project-reclaimer" dedicated)
 cd "$SERVER_DIR"
 
-# --- One-time game file setup from the MCC install (re-running init keeps existing settings) ---
-init_from_mcc() {  # $1 = --maps value
-  [ -d "$MCC_DIR" ] && [ -n "$(ls -A "$MCC_DIR" 2>/dev/null)" ] ||
-    die "game files are missing and $MCC_DIR is empty. Mount your MCC install there (set MCC_DIR in .env)."
-  log "dedicated init --maps $1 (copying from MCC; this can take a while)"
-  "${DEDICATED[@]}" init "$SERVER_DIR" --from "$MCC_DIR" --maps "$1"
-}
-
-if [ "$MISSION_GAME" = odst ]; then
-  marker=game/halo3odst/maps/shared.map; campaign_maps=odst
-else
-  marker=game/halo3/halo3.dll; campaign_maps=campaign
+# --- Game files: your MCC install is mounted read-only at /server/game, nothing is copied ---
+game=game
+[ -f "$game/halo3/halo3.dll" ] ||
+  die "no Halo 3 files in $SERVER_DIR/$game. Mount your MCC install there (set MCC_DIR in .env)."
+if [ "$MISSION_GAME" = odst ] && [ ! -d "$game/halo3odst" ]; then
+  die "mission $MISSION ($MISSION_NAME) needs Halo 3: ODST, which is not in the mounted MCC folder"
 fi
-[ -f "$marker" ] || init_from_mcc "$campaign_maps"
-
-missing=()
-while read -r stem; do
-  [ -f "game/halo3/maps/$stem.map" ] || missing+=("$stem")
-done < <(cfg '.multiplayer.maps[].file')
-if [ "${#missing[@]}" -gt 0 ]; then
-  init_from_mcc "$(IFS=,; echo "${missing[*]}")"
-fi
+mkdir -p content playlists
 
 # --- RCON password: RCON_PASSWORD env, else one generated on first run and kept ---
 pwfile=rcon-password.txt
@@ -143,6 +130,20 @@ EOF
 log "$(cat "$VERSION_FILE"): '$CAMPAIGN_NAME' ($MISSION_NAME) on UDP $CAMPAIGN_PORT, '$MULTIPLAYER_NAME' on UDP $MULTIPLAYER_PORT"
 log "Players: Direct Connect to <this host's LAN IP>:$CAMPAIGN_PORT or :$MULTIPLAYER_PORT"
 
-"${DEDICATED[@]}" --config dedicated.toml check ||
-  die "dedicated check failed; see the lines it names above"
+# The binary is never replaced in place here: this entrypoint does the updating.
+export RECLAIMER_DEDICATED_AUTO_UPDATE=false
+mkdir -p "$HOME" "$XDG_DATA_HOME"
+
+# Wait for a fixable problem (game files, mount, network) instead of exiting into a restart
+# loop, like the official image: retry `check` and report only when its output changes.
+last=""
+while ! report="$("${DEDICATED[@]}" --config dedicated.toml check 2>&1)"; do
+  if [ "$report" != "$last" ]; then
+    echo "$report" >&2
+    log "dedicated check failed; retrying every 15 s. Fix the config or the mounted MCC folder."
+    last="$report"
+  fi
+  sleep 15
+done
+echo "$report"
 exec "${DEDICATED[@]}" --config dedicated.toml
