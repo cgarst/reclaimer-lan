@@ -7,6 +7,11 @@
 #   RECLAIMER_VERSION=v0.10.7          # in .env to pin a release
 FROM debian:12-slim
 
+LABEL org.opencontainers.image.title="reclaimer-lan" \
+      org.opencontainers.image.description="Project Reclaimer dedicated servers (Halo 3 / ODST campaign co-op and a multiplayer playlist) in one container. Downloads the server at start; bring your own MCC files." \
+      org.opencontainers.image.source="https://github.com/cgarst/reclaimer-lan" \
+      org.opencontainers.image.licenses="MPL-2.0"
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl jq tar tini \
  && rm -rf /var/lib/apt/lists/*

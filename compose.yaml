@@ -10,7 +10,8 @@ name: reclaimer-lan
 services:
   reclaimer:
     build: .
-    image: reclaimer-lan:latest
+    # `docker compose pull` fetches the published image; `up --build` builds it locally instead.
+    image: ${RECLAIMER_IMAGE:-cgarst/reclaimer-lan:latest}
     container_name: reclaimer-lan
     restart: unless-stopped
     stop_signal: SIGINT

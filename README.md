@@ -91,9 +91,11 @@ The password is generated on the first run of either start script and saved to `
 
 ```sh
 cp .env.example .env       # set MCC_DIR (and MISSION, ports, names if you like)
-docker compose up -d --build
+docker compose up -d --build   # build locally, or: docker compose pull && docker compose up -d
 docker compose logs -f
 ```
+
+The published image is `cgarst/reclaimer-lan` on Docker Hub (`latest` and `1.0`, linux/amd64). Without Compose: `docker run` it with `MCC_DIR` mounted at `/server/game:ro`, the `server` and `cache` volumes, and the UDP ports published.
 
 Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). The `config` folder is mounted into the container at `/etc/reclaimer` (a folder, so editors that replace the file on save still work) and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. With no config mounted, the container uses the copy of `config/reclaimer.config.json` baked in at build time. `.env` covers the MCC path, optional overrides and the RCON password.
 
@@ -129,3 +131,7 @@ campaign-server/        generated server folder (git-ignored)
 - The first run of each mode runs `dedicated init` to copy game files from MCC. This can take a while. The multiplayer script copies only the maps it is missing.
 - The scripts regenerate their config on every start, so edit `reclaimer.config.json` rather than the generated `.toml` files. `start-campaign.ps1` keeps a one-time backup of the original as `dedicated.toml.bak`.
 - Each script runs `dedicated check` before starting and stops if the config has problems.
+
+## License
+
+The scripts, Dockerfile and configuration in this repository are licensed under the Mozilla Public License 2.0 (see `LICENSE`). That covers only this repository: Project Reclaimer's software is downloaded from their releases under their own terms, and the game files are yours, from your own copy of Halo: The Master Chief Collection.
