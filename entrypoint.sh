@@ -7,13 +7,13 @@ SERVER_DIR="${SERVER_DIR:-/server}"
 MCC_DIR="${MCC_DIR:-/mcc}"
 VERSION_FILE="${VERSION_FILE:-/opt/reclaimer/VERSION}"
 
-CONFIG_FILE="${CONFIG_FILE:-/etc/reclaimer/config.json}"   # shared with the PowerShell scripts
+CONFIG_FILE="${CONFIG_FILE:-/etc/reclaimer/reclaimer.config.json}"   # ./config, shared with the PowerShell scripts
 
 log() { echo "[entrypoint] $*"; }
 die() { echo "[entrypoint] error: $*" >&2; exit 1; }
 tstr() { jq -Rn --arg s "$1" '$s'; }   # TOML/JSON-safe quoted string
 cfg() { jq -r "$1" "$CONFIG_FILE"; }
-[ -f "$CONFIG_FILE" ] || die "$CONFIG_FILE not found (compose mounts reclaimer.config.json there)"
+[ -f "$CONFIG_FILE" ] || die "$CONFIG_FILE not found (compose mounts ./config at /etc/reclaimer)"
 
 # Environment variables override the shared file; empty means "use the file".
 CAMPAIGN_PORT="${CAMPAIGN_PORT:-$(cfg .campaign.port)}"

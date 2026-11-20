@@ -31,8 +31,8 @@ services:
       VOTE_SECONDS: ${VOTE_SECONDS:-}
       RCON_PASSWORD: ${RCON_PASSWORD:-}
     volumes:
-      # Shared settings (also read by the PowerShell scripts); edit and `docker compose restart`.
-      - ./reclaimer.config.json:/etc/reclaimer/config.json:ro
+      # Shared settings (also read by the PowerShell scripts); edit config/reclaimer.config.json and `docker compose restart`.
+      - ./config:/etc/reclaimer:ro
       # Your MCC install, read-only. Only read when game files are missing from the server volume.
       - ${MCC_DIR:?set MCC_DIR in .env to your Halo The Master Chief Collection folder}:/mcc:ro
       - server:/server   # game files copied from MCC (never redistribute), config, RCON password, logs, bans

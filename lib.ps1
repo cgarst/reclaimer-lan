@@ -2,7 +2,7 @@
 # Tunable settings live in reclaimer.config.json (shared with the Docker image), not here.
 
 function Get-ReclaimerConfig {
-    Get-Content (Join-Path $PSScriptRoot 'reclaimer.config.json') -Raw | ConvertFrom-Json
+    Get-Content (Join-Path $PSScriptRoot 'config\reclaimer.config.json') -Raw | ConvertFrom-Json
 }
 
 # Newest dedicated server in this folder (update-binaries.ps1 downloads it).

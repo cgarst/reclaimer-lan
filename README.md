@@ -95,7 +95,7 @@ docker compose up -d --build
 docker compose logs -f
 ```
 
-Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). `reclaimer.config.json` is mounted into the container and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. `.env` covers the MCC path, optional overrides and the RCON password.
+Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). The `config` folder is mounted into the container at `/etc/reclaimer` (a folder, so editors that replace the file on save still work) and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. `.env` covers the MCC path, optional overrides and the RCON password.
 
 - Update the server: `docker compose build --pull --no-cache && docker compose up -d`. Pin a release with `RECLAIMER_VERSION=v0.10.7`.
 - Change the mission: set `MISSION` in `.env` and run `docker compose up -d`. Missing game files are copied on that start.
@@ -105,7 +105,7 @@ Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (mult
 
 ## Configuration
 
-Settings live in one place, `reclaimer.config.json`, read by both the PowerShell scripts and the Docker image: ports, names, missions, difficulty, enemy scaling, skulls, multiplayer maps and modes, vote time, player limit and the other host settings. Edit that file only. The platform files hold just their own plumbing (finding the binary, the MCC path, starting the process, writing the TOML from those values).
+Settings live in one place, `config/reclaimer.config.json`, read by both the PowerShell scripts and the Docker image: ports, names, missions, difficulty, enemy scaling, skulls, multiplayer maps and modes, vote time, player limit and the other host settings. Edit that file only. The platform files hold just their own plumbing (finding the binary, the MCC path, starting the process, writing the TOML from those values).
 
 Command-line parameters (`-Port`, `-Name`, `-Mission`, `-VoteSeconds`) and the Docker `.env` variables override the file. The one catch: Compose publishes ports from `.env`, not the JSON, so if you change a port in the JSON also set `CAMPAIGN_PORT` / `MULTIPLAYER_PORT` in `.env`; the container refuses to start on a mismatch and says so.
 
@@ -116,7 +116,7 @@ update-binaries.ps1     download/verify executables
 start-campaign.ps1      campaign co-op server
 start-multiplayer.ps1   multiplayer playlist server
 start-rcon.ps1          RCON client launcher
-reclaimer.config.json   shared settings (scripts and Docker)
+config/reclaimer.config.json   shared settings (scripts and Docker)
 lib.ps1                 helpers for the PowerShell scripts
 Dockerfile, compose.yaml, entrypoint.sh, .env.example   Docker version of both servers
 campaign-server/        generated server folder (git-ignored)
