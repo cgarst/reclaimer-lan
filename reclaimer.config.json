@@ -1,0 +1,202 @@
+{
+  "_comment": "Shared by the PowerShell scripts and the Docker image. Edit here; the platform files only read it. Command-line parameters / environment variables still override ports, names, mission and vote time.",
+  "server": {
+    "max_players": 16,
+    "hidden": true,
+    "friendly_fire": false,
+    "voice": false,
+    "upnp": false
+  },
+  "campaign": {
+    "name": "Legendary Co-op",
+    "port": 12345,
+    "default_mission": 3010,
+    "insertion": 0,
+    "difficulty": "legendary",
+    "custom_characters": true,
+    "health_per_player_percent": 10,
+    "damage_per_player_percent": 10,
+    "sprint": true,
+    "skulls": {
+      "Cowbell": 2048,
+      "Grunt Birthday Party": 4096,
+      "IWHBYD": 8192
+    },
+    "missions": [
+      {
+        "id": 3010,
+        "game": "halo3",
+        "name": "Sierra 117"
+      },
+      {
+        "id": 3020,
+        "game": "halo3",
+        "name": "Crow's Nest"
+      },
+      {
+        "id": 3030,
+        "game": "halo3",
+        "name": "Tsavo Highway"
+      },
+      {
+        "id": 3040,
+        "game": "halo3",
+        "name": "The Storm"
+      },
+      {
+        "id": 3050,
+        "game": "halo3",
+        "name": "Floodgate"
+      },
+      {
+        "id": 3070,
+        "game": "halo3",
+        "name": "The Ark"
+      },
+      {
+        "id": 3100,
+        "game": "halo3",
+        "name": "The Covenant"
+      },
+      {
+        "id": 3110,
+        "game": "halo3",
+        "name": "Cortana"
+      },
+      {
+        "id": 3120,
+        "game": "halo3",
+        "name": "Halo"
+      },
+      {
+        "id": 4100,
+        "game": "odst",
+        "name": "Prepare to Drop"
+      },
+      {
+        "id": 5000,
+        "game": "odst",
+        "name": "Mombasa Streets"
+      },
+      {
+        "id": 6100,
+        "game": "odst",
+        "name": "Tayari Plaza"
+      },
+      {
+        "id": 6110,
+        "game": "odst",
+        "name": "Uplift Reserve"
+      },
+      {
+        "id": 6120,
+        "game": "odst",
+        "name": "Kizingo Boulevard"
+      },
+      {
+        "id": 6130,
+        "game": "odst",
+        "name": "ONI Alpha Site"
+      },
+      {
+        "id": 6140,
+        "game": "odst",
+        "name": "NMPD HQ"
+      },
+      {
+        "id": 6150,
+        "game": "odst",
+        "name": "Kikowani Station"
+      },
+      {
+        "id": 5200,
+        "game": "odst",
+        "name": "Data Hive"
+      },
+      {
+        "id": 5300,
+        "game": "odst",
+        "name": "Coastal Highway"
+      },
+      {
+        "id": 4200,
+        "game": "odst",
+        "name": "Epilogue"
+      }
+    ]
+  },
+  "multiplayer": {
+    "name": "LAN Multiplayer",
+    "port": 12346,
+    "vote_seconds": 20,
+    "rounds_limit": 1,
+    "maps": [
+      {
+        "name": "Heretic",
+        "file": "midship"
+      },
+      {
+        "name": "Guardian",
+        "file": "guardian"
+      },
+      {
+        "name": "Construct",
+        "file": "construct"
+      },
+      {
+        "name": "Epitaph",
+        "file": "salvation"
+      },
+      {
+        "name": "Citadel",
+        "file": "fortress"
+      },
+      {
+        "name": "Cold Storage",
+        "file": "chillout"
+      },
+      {
+        "name": "Assembly",
+        "file": "descent"
+      },
+      {
+        "name": "Snowbound",
+        "file": "snowbound"
+      },
+      {
+        "name": "The Pit",
+        "file": "cyberdyne"
+      },
+      {
+        "name": "Narrows",
+        "file": "chill"
+      }
+    ],
+    "modes": [
+      {
+        "game": "One in the Chamber",
+        "name": "One in the Chamber"
+      },
+      {
+        "game": "Gun Game",
+        "name": "Gun Game"
+      },
+      {
+        "game": "slayer-0_010.bin",
+        "name": "Slayer"
+      },
+      {
+        "game": "king",
+        "name": "King of the Hill"
+      },
+      {
+        "game": "infection-0_010.bin",
+        "name": "Infection"
+      },
+      {
+        "game": "juggernaut-0_010.bin",
+        "name": "Juggernaut"
+      }
+    ]
+  }
+}
