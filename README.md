@@ -24,7 +24,7 @@ The scripts look for MCC at `D:\SteamLibrary\steamapps\common\Halo The Master Ch
 
 When the server starts it prints a line like `LAN players: Direct Connect to 192.168.1.20:12345`. Players on the LAN use Direct Connect in the Project Reclaimer client with that address. The server is hidden: it isn't listed publicly, and UPnP and port forwarding are off.
 
-Run one server at a time. Both modes use port 12345 and the same server folder.
+The campaign server uses port 12345 and multiplayer 12346 (set in `reclaimer.config.json`), so both can run at once.
 
 ## Scripts
 
@@ -43,11 +43,11 @@ The other scripts use the newest `*-vX.Y.Z.exe` in this folder.
 
 Starts campaign co-op. It asks which mission to start on, from the list of Halo 3 and ODST missions. Pass `-Mission <number>` to skip the menu.
 
-Settings (edit the script to change them):
+Settings (in `reclaimer.config.json`):
 
 - Difficulty: Legendary
 - Friendly fire and voice chat: off
-- Enemy scaling: +25% health and +25% damage per extra player
+- Enemy scaling: per extra player, from the config file
 - Sprint: on
 - Skulls: Cowbell, Grunt Birthday Party and IWHBYD
 - Custom characters (Halo 3 only; ODST uses each player's trooper)
@@ -56,7 +56,7 @@ Settings (edit the script to change them):
 | Parameter | Default |
 |---|---|
 | `-Name` | `Legendary Co-op` |
-| `-Port` | `12345` |
+| `-Port` | config (`12345`) |
 | `-Mission` | prompt |
 | `-ServerDir` | `.\campaign-server` |
 | `-MccDir` | `$env:RECLAIMER_MCC_DIR`, or the Steam path above |
@@ -72,8 +72,8 @@ Starts a multiplayer playlist: One in the Chamber, Gun Game, Slayer, King of the
 | Parameter | Default |
 |---|---|
 | `-Name` | `LAN Multiplayer` |
-| `-Port` | `12345` |
-| `-VoteSeconds` | `20` |
+| `-Port` | config (`12346`) |
+| `-VoteSeconds` | config (`20`) |
 | `-ServerDir` | `.\campaign-server` |
 | `-MccDir` | `$env:RECLAIMER_MCC_DIR`, or the Steam path above |
 
@@ -85,6 +85,30 @@ Opens the RCON desktop client to administer a running server. The client takes n
 
 The password is generated on the first run of either start script and saved to `campaign-server\rcon-password.txt`.
 
+## Docker
+
+`compose.yaml` runs both servers in one container (campaign co-op on UDP 12345, multiplayer playlist on UDP 12346) from the Linux dedicated server build. The image downloads the binary from the Project Reclaimer GitHub release at build time and checks its SHA-256. It holds no game files: your MCC folder is mounted read-only at `/mcc`, and the first start copies what it needs into the `server` volume.
+
+```sh
+cp .env.example .env       # set MCC_DIR (and MISSION, ports, names if you like)
+docker compose up -d --build
+docker compose logs -f
+```
+
+Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). `reclaimer.config.json` is mounted into the container and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. `.env` covers the MCC path, optional overrides and the RCON password.
+
+- Update the server: `docker compose build --pull --no-cache && docker compose up -d`. Pin a release with `RECLAIMER_VERSION=v0.10.7`.
+- Change the mission: set `MISSION` in `.env` and run `docker compose up -d`. Missing game files are copied on that start.
+- RCON listens on TCP at each game port, published on the Docker host's `127.0.0.1` only. The password is in the volume at `/server/rcon-password.txt` (`docker compose exec reclaimer cat /server/rcon-password.txt`), or set `RCON_PASSWORD`.
+- Server commands: `docker compose exec reclaimer dedicated status`.
+- The container needs UDP 12345/12346 reachable from the LAN. UPnP is off.
+
+## Configuration
+
+Settings live in one place, `reclaimer.config.json`, read by both the PowerShell scripts and the Docker image: ports, names, missions, difficulty, enemy scaling, skulls, multiplayer maps and modes, vote time, player limit and the other host settings. Edit that file only. The platform files hold just their own plumbing (finding the binary, the MCC path, starting the process, writing the TOML from those values).
+
+Command-line parameters (`-Port`, `-Name`, `-Mission`, `-VoteSeconds`) and the Docker `.env` variables override the file. The one catch: Compose publishes ports from `.env`, not the JSON, so if you change a port in the JSON also set `CAMPAIGN_PORT` / `MULTIPLAYER_PORT` in `.env`; the container refuses to start on a mismatch and says so.
+
 ## Layout
 
 ```
@@ -92,6 +116,9 @@ update-binaries.ps1     download/verify executables
 start-campaign.ps1      campaign co-op server
 start-multiplayer.ps1   multiplayer playlist server
 start-rcon.ps1          RCON client launcher
+reclaimer.config.json   shared settings (scripts and Docker)
+lib.ps1                 helpers for the PowerShell scripts
+Dockerfile, compose.yaml, entrypoint.sh, .env.example   Docker version of both servers
 campaign-server/        generated server folder (git-ignored)
 *.exe                   downloaded binaries (git-ignored)
 ```
@@ -99,5 +126,5 @@ campaign-server/        generated server folder (git-ignored)
 ## Notes
 
 - The first run of each mode runs `dedicated init` to copy game files from MCC. This can take a while. The multiplayer script copies only the maps it is missing.
-- The scripts regenerate their config on every start, so edit the scripts rather than the generated `.toml` files. `start-campaign.ps1` keeps a one-time backup of the original as `dedicated.toml.bak`.
+- The scripts regenerate their config on every start, so edit `reclaimer.config.json` rather than the generated `.toml` files. `start-campaign.ps1` keeps a one-time backup of the original as `dedicated.toml.bak`.
 - Each script runs `dedicated check` before starting and stops if the config has problems.

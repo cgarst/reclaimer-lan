@@ -1,0 +1,55 @@
+# Both Project Reclaimer servers in one container: campaign co-op (CAMPAIGN_PORT) and the
+# multiplayer playlist (MULTIPLAYER_PORT). Settings come from .env (see .env.example).
+#
+#   docker compose up -d --build
+#   docker compose logs -f
+#
+# Published ports are the same on host and container: the server reports its own port.
+# (On a Linux host you can swap the ports: block for `network_mode: host`.)
+name: reclaimer-lan
+services:
+  reclaimer:
+    build:
+      context: .
+      args:
+        RECLAIMER_VERSION: ${RECLAIMER_VERSION:-latest}
+    image: reclaimer-lan:latest
+    container_name: reclaimer-lan
+    init: true
+    restart: unless-stopped
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    environment:
+      # Empty = use reclaimer.config.json.
+      CAMPAIGN_PORT: ${CAMPAIGN_PORT:-}
+      MULTIPLAYER_PORT: ${MULTIPLAYER_PORT:-}
+      CAMPAIGN_NAME: ${CAMPAIGN_NAME:-}
+      MULTIPLAYER_NAME: ${MULTIPLAYER_NAME:-}
+      MISSION: ${MISSION:-}
+      PUBLISHED_CAMPAIGN_PORT: ${CAMPAIGN_PORT:-12345}
+      PUBLISHED_MULTIPLAYER_PORT: ${MULTIPLAYER_PORT:-12346}
+      VOTE_SECONDS: ${VOTE_SECONDS:-}
+      RCON_PASSWORD: ${RCON_PASSWORD:-}
+    volumes:
+      # Shared settings (also read by the PowerShell scripts); edit and `docker compose restart`.
+      - ./reclaimer.config.json:/etc/reclaimer/config.json:ro
+      # Your MCC install, read-only. Only read when game files are missing from the server volume.
+      - ${MCC_DIR:?set MCC_DIR in .env to your Halo The Master Chief Collection folder}:/mcc:ro
+      - server:/server   # game files copied from MCC (never redistribute), config, RCON password, logs, bans
+      - cache:/cache     # prepared engine and other caches
+    ports:
+      - "${CAMPAIGN_PORT:-12345}:${CAMPAIGN_PORT:-12345}/udp"
+      - "${MULTIPLAYER_PORT:-12346}:${MULTIPLAYER_PORT:-12346}/udp"
+      # Remote console (TCP at each game port), on the Docker host's own loopback only.
+      - "127.0.0.1:${CAMPAIGN_PORT:-12345}:${CAMPAIGN_PORT:-12345}/tcp"
+      - "127.0.0.1:${MULTIPLAYER_PORT:-12346}:${MULTIPLAYER_PORT:-12346}/tcp"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  server:
+  cache:

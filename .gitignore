@@ -5,3 +5,6 @@
 # Project Reclaimer binaries (server, client, RCON client): download per machine.
 *.exe
 *.exe.download
+
+# Docker settings (MCC path, RCON password)
+.env
