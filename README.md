@@ -95,7 +95,7 @@ docker compose up -d --build
 docker compose logs -f
 ```
 
-Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). The `config` folder is mounted into the container at `/etc/reclaimer` (a folder, so editors that replace the file on save still work) and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. `.env` covers the MCC path, optional overrides and the RCON password.
+Players Direct Connect to `<docker host LAN IP>:12345` (co-op) or `:12346` (multiplayer). The `config` folder is mounted into the container at `/etc/reclaimer` (a folder, so editors that replace the file on save still work) and `entrypoint.sh` regenerates `dedicated.toml` from it on every start, so `docker compose restart` applies edits. With no config mounted, the container uses the copy of `config/reclaimer.config.json` baked in at build time. `.env` covers the MCC path, optional overrides and the RCON password.
 
 - Update the server: `docker compose build --pull --no-cache && docker compose up -d`. Pin a release with `RECLAIMER_VERSION=v0.10.7`.
 - Change the mission: set `MISSION` in `.env` and run `docker compose up -d`. Missing game files are copied on that start.

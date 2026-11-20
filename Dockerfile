@@ -40,6 +40,8 @@ RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin reclaimer \
  && chown reclaimer:reclaimer /server /cache
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
+# Default settings, used when no config is mounted at /etc/reclaimer.
+COPY config/reclaimer.config.json /usr/share/reclaimer/default.config.json
 # `docker compose exec reclaimer dedicated status` etc. against the generated config.
 RUN printf '#!/bin/sh\ncd /server && exec project-reclaimer dedicated --config /server/dedicated.toml "$@"\n' \
       > /usr/local/bin/dedicated \

@@ -13,7 +13,12 @@ log() { echo "[entrypoint] $*"; }
 die() { echo "[entrypoint] error: $*" >&2; exit 1; }
 tstr() { jq -Rn --arg s "$1" '$s'; }   # TOML/JSON-safe quoted string
 cfg() { jq -r "$1" "$CONFIG_FILE"; }
-[ -f "$CONFIG_FILE" ] || die "$CONFIG_FILE not found (compose mounts ./config at /etc/reclaimer)"
+if [ ! -f "$CONFIG_FILE" ]; then
+  DEFAULT_CONFIG=/usr/share/reclaimer/default.config.json
+  [ -f "$DEFAULT_CONFIG" ] || die "$CONFIG_FILE not found and no built-in default"
+  log "$CONFIG_FILE not found; using the built-in default settings"
+  CONFIG_FILE="$DEFAULT_CONFIG"
+fi
 
 # Environment variables override the shared file; empty means "use the file".
 CAMPAIGN_PORT="${CAMPAIGN_PORT:-$(cfg .campaign.port)}"
